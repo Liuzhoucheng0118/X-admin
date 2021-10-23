@@ -1,0 +1,78 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lzc.emp.mapper.EmpMapper">
+
+    <resultMap id="empDept" type="Emp">
+        <id column="emp_id" property="empId"/>
+        <result column="name" property="name"/>
+        <result column="sex" property="sex"/>
+        <result column="age" property="age"/>
+        <result column="address" property="address"/>
+        <result column="sal" property="sal"/>
+        <result column="birthday" property="birthday"/>
+        <result column="dept_id" property="deptId"/>
+        <association property="dept" column="dept_id">
+            <id column="dept_id" property="deptId"/>
+            <result column="dept_name" property="deptName"/>
+        </association>
+    </resultMap>
+
+    <select id="getEmpList" parameterType="com.lzc.emp.vo.EmpQuery" resultMap="empDept">
+        select * from emp a left join dept b on a.dept_id=b.dept_id
+        <include refid="getCheckDate"></include>
+        order by emp_id desc
+        limit #{start},#{limit}
+    </select>
+
+    <select id="getEmpCount"  parameterType="com.lzc.emp.vo.EmpQuery" resultType="Long">
+        select count(1) from emp a
+        <include refid="getCheckDate"></include>
+    </select>
+
+    <sql id="getCheckDate">
+        <where>
+            <if test="name != null">
+                a.name like '%' #{name} '%'
+            </if>
+            <if test="startDate != null">
+                <![CDATA[
+                and a.birthday >= #{startDate}
+                ]]>
+            </if>
+            <if test="endDate != null">
+                <![CDATA[
+                and a.birthday <= #{endDate}
+                ]]>
+            </if>
+        </where>
+    </sql>
+
+    <insert id="addEmp" parameterType="Emp">
+        insert into
+        emp(name, sex, age, sal, birthday, address, dept_id)
+        VALUES(#{name},#{sex},#{age},#{sal},#{birthday},#{address},#{deptId})
+    </insert>
+
+    <delete id="deleteByEmpId" parameterType="String">
+        delete from emp where emp_id in (#{ids})
+    </delete>
+
+    <select id="getEmpById" parameterType="String" resultMap="empDept">
+        select * from emp a left join dept b on a.dept_id=b.dept_id
+        where a.emp_id = #{id}
+    </select>
+
+
+    <update id="toUpdataEmp" parameterType="Emp">
+        update emp
+        set name=#{name},
+            sex=#{sex},
+            age=#{age},
+            sal=#{sal},
+            birthday=#{birthday},
+            address=#{address},
+            dept_id=#{deptId}
+        where emp_id=#{empId}
+    </update>
+</mapper>
